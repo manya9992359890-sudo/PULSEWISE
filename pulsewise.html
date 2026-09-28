@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pulsewise</title>
+<style>
+:root{
+  --bg:#F3F7F6; --surface:#FFFFFF; --surface-2:#EAF2F0; --ink:#0E2A28; --ink-2:#4E6A66;
+  --line:#DCE7E4; --accent:#137A6C; --accent-ink:#0B584D; --amber:#C9862A; --amber-bg:#FBF0DF;
+  --red:#C94A4A; --red-bg:#FBE7E7; --green:#2E9B6B; --green-bg:#E6F5EE;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0B1615; --surface:#122120; --surface-2:#16302D; --ink:#EAF3F1; --ink-2:#9FBAB5; --line:#22403C; --amber-bg:#3A2C13; --red-bg:#3A1D1D; --green-bg:#123226; }
+}
+:root[data-theme="dark"]{ --bg:#0B1615; --surface:#122120; --surface-2:#16302D; --ink:#EAF3F1; --ink-2:#9FBAB5; --line:#22403C; --amber-bg:#3A2C13; --red-bg:#3A1D1D; --green-bg:#123226; }
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,'Segoe UI',ui-sans-serif,sans-serif;font-variant-numeric:tabular-nums;}
+h1,h2,h3{margin:0 0 4px;letter-spacing:-.01em;}
+button{font-family:inherit;cursor:pointer;}
+input,select{font-family:inherit;}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 96px;}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px;}
+.muted{color:var(--ink-2);font-size:14px;}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-size:15px;font-weight:600;}
+.btn:active{background:var(--accent-ink);}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent);}
+.btn.block{width:100%;}
+.btn.sm{padding:7px 12px;font-size:13px;}
+.row{display:flex;gap:10px;flex-wrap:wrap;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:13px;color:var(--ink-2);margin-bottom:5px;}
+.field input,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-size:15px;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:13px;font-weight:600;}
+.pill.green{background:var(--green-bg);color:var(--green);}
+.pill.amber{background:var(--amber-bg);color:var(--amber);}
+.pill.red{background:var(--red-bg);color:var(--red);}
+.pill.gray{background:var(--surface-2);color:var(--ink-2);}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.center-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.auth-box{width:100%;max-width:380px;}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:21px;margin-bottom:22px;}
+.logo svg{flex:none;}
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:12px;margin-bottom:18px;}
+.tabs button{flex:1;background:transparent;border:none;padding:9px;border-radius:9px;font-weight:600;color:var(--ink-2);}
+.tabs button.active{background:var(--surface);color:var(--ink);}
+.err{color:var(--red);font-size:13px;margin:-4px 0 12px;}
+.goal-opt{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px;font-size:15px;color:var(--ink);}
+.goal-opt.sel{border-color:var(--accent);background:var(--surface-2);}
+.app-shell{display:flex;min-height:100vh;}
+.sidebar{width:210px;flex:none;border-right:1px solid var(--line);padding:20px 14px;display:none;flex-direction:column;}
+.sidebar .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--ink-2);font-weight:600;font-size:14px;background:none;border:none;text-align:left;width:100%;margin-bottom:2px;}
+.sidebar .nav-item.active{background:var(--surface-2);color:var(--accent-ink);}
+.main{flex:1;min-width:0;}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:calc(16px + env(safe-area-inset-top,0px));}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:10;}
+.bottomnav button{flex:1;background:none;border:none;padding:10px 4px 8px;font-size:11px;font-weight:600;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bottomnav button.active{color:var(--accent);}
+.hero-reading{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-ink) 100%);color:#fff;border-radius:18px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden;}
+.hero-reading .big{font-size:52px;font-weight:700;line-height:1;margin:6px 0;}
+.hero-reading .unit{font-size:16px;font-weight:500;opacity:.85;}
+.pulseline{position:absolute;right:-10px;bottom:-6px;opacity:.25;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:600px){.grid2{grid-template-columns:1fr;}}
+.stat{text-align:center;}
+.stat .num{font-size:22px;font-weight:700;}
+.sensor-row{display:flex;align-items:center;justify-content:space-between;}
+.readinglist{list-style:none;margin:0;padding:0;}
+.readinglist li{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;}
+.readinglist li:last-child{border-bottom:none;}
+@media (min-width:880px){
+  .sidebar{display:flex;}
+  .bottomnav{display:none;}
+  .wrap{padding-bottom:20px;}
+}
+.foot{margin-top:18px;font-size:12px;color:var(--ink-2);text-align:center;line-height:1.5;}
+.pbar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:6px 0;}
+.pbar>div{height:100%;background:var(--accent);}
+.locked{opacity:.5;}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const BIOMARKER={label:"Heart Rate",unit:"bpm",center:70,spread:5};
+const GOALS=[
+  {id:"general",label:"General Health Monitoring"},
+  {id:"disease",label:"Monitoring a Diagnosed Disease"},
+  {id:"recovery",label:"Recovery / Post-Treatment Monitoring"},
+  {id:"symptom",label:"Symptom & Health Pattern Monitoring"},
+  {id:"fitness",label:"Fitness & Wellness Monitoring"},
+  {id:"other",label:"Other"}
+];
+const CONDITIONS=["Diabetes","Hypertension","Cardiovascular condition","Respiratory condition","Other"];
+const LEVELS=[{name:"Getting Started",min:0},{name:"Consistent Monitor",min:100},{name:"Health Tracker",min:300},{name:"Insight Explorer",min:600},{name:"Monitoring Champion",min:1000}];
+const BADGES=[
+  {id:"firstReading",label:"First Reading",desc:"Take your first reading."},
+  {id:"consistentMonitor",label:"Consistent Monitor",desc:"Complete monitoring for 3 consecutive days."},
+  {id:"sevenDay",label:"7-Day Streak",desc:"Complete monitoring for 7 consecutive days."},
+  {id:"trendExplorer",label:"Trend Explorer",desc:"Review the trend/history section."},
+  {id:"dataGuardian",label:"Data Guardian",desc:"Open the privacy/data settings."},
+  {id:"weeklyTracker",label:"Weekly Tracker",desc:"Complete a weekly monitoring goal."}
+];
+const CHALLENGES=[
+  {id:"sevenDay",label:"7-Day Monitoring",desc:"Complete at least one monitoring session on 7 different days.",target:7,reward:100,metric:p=>p.readingDays.length},
+  {id:"trend",label:"Know Your Trend",desc:"Review your trend/history at least 3 times.",target:3,reward:50,metric:p=>p.trendReviewDays.length},
+  {id:"consistent",label:"Stay Consistent",desc:"Complete your daily monitoring goal 5 times.",target:5,reward:75,metric:p=>p.readingDays.length}
+];
+const REWARDS=[
+  {id:"edu",name:"Health Education Pack",desc:"Prototype reward — a themed set of educational content.",cost:500},
+  {id:"insights",name:"Advanced Insights Preview",desc:"Prototype reward — early access to deeper trend insights.",cost:1000},
+  {id:"wellness",name:"Wellness Perk",desc:"Prototype reward — a demo wellness perk.",cost:2000}
+];
+const LEARN=[
+  {id:"why-monitor",title:"Why continuous monitoring matters",body:"A single reading only shows one moment. Regular monitoring reveals the patterns your body shows over time, which is far more useful than any one number."},
+  {id:"baseline",title:"What is a personal baseline?",body:"Your baseline is the typical range of your own recent readings — not a medical standard. It reflects what's normal for you specifically."},
+  {id:"trend",title:"What does a trend mean?",body:"A trend describes the direction your recent readings are moving — stable, increasing, or decreasing — over a short window of time."},
+  {id:"signal",title:"Why sensor signal quality matters",body:"Signal quality reflects how reliable a reading is. Lower-quality readings should be interpreted with more caution than high-quality ones."},
+  {id:"wearables",title:"How wearable biosensors work",body:"Wearable biosensors continuously sample physiological signals and convert them into digital readings a device can analyze over time."}
+];
+
+function loadDB(){
+  try{return JSON.parse(localStorage.getItem("pulsewise_db"))||{users:{},session:null,profiles:{},sensors:{},readings:{}};}
+  catch(e){return {users:{},session:null,profiles:{},sensors:{},readings:{}};}
+}
+function saveDB(){ localStorage.setItem("pulsewise_db",JSON.stringify(db)); }
+async function sha256(text){
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+let db=loadDB();
+let ui={view:"auth",authTab:"login",authErr:"",onboardGoal:null,onboardCond:"",editingName:false,returnToProfile:false,showWhy:false,historyRange:"7d",expandedId:null,toasts:[]};
+
+function me(){ return db.session; }
+function profile(){
+  const p=db.profiles[me()];
+  if(!p) return p;
+  if(!p.badges) p.badges={};
+  if(!p.readingDays) p.readingDays=[];
+  if(!p.trendReviewDays) p.trendReviewDays=[];
+  if(!p.learningDone) p.learningDone={};
+  if(!p.challenges) p.challenges={};
+  if(!p.rewardsRedeemed) p.rewardsRedeemed=[];
+  if(typeof p.weeklyCount!=="number") p.weeklyCount=0;
+  return p;
+}
+function sensor(){ return db.sensors[me()]; }
+function readings(){ return db.readings[me()]||[]; }
+
+function esc(s){ return (s||"").replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c])); }
+function fmtTime(ts){ const d=new Date(ts); return d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}); }
+function timeAgo(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60) return "just now";
+  if(s<3600) return Math.floor(s/60)+" min ago";
+  if(s<86400) return Math.floor(s/3600)+" hr ago";
+  return Math.floor(s/86400)+" days ago";
+}
+
+function pulseSVG(w,h){
+  return `<svg class="pulseline" width="${w}" height="${h}" viewBox="0 0 200 60" fill="none"><path d="M0 30 L40 30 L52 8 L64 52 L76 20 L86 30 L200 30" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function buildChart(vals,baseline){
+  if(!vals||vals.length<2) return null;
+  const w=600,h=150,pad=12;
+  let min=Math.min(...vals.map(v=>v.value)),max=Math.max(...vals.map(v=>v.value));
+  if(baseline){min=Math.min(min,baseline.lo);max=Math.max(max,baseline.hi);}
+  if(max===min){max+=5;min-=5;}
+  const range=max-min, stepX=(w-2*pad)/(vals.length-1);
+  const y=v=>h-pad-((v-min)/range)*(h-2*pad);
+  const pts=vals.map((v,i)=>({x:pad+i*stepX,y:y(v.value),v}));
+  const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const band=baseline?`<rect x="${pad}" y="${y(baseline.hi).toFixed(1)}" width="${w-2*pad}" height="${Math.max(1,y(baseline.lo)-y(baseline.hi)).toFixed(1)}" fill="var(--accent)" opacity=".12"/>`:"";
+  const dots=pts.map(p=>{const dev=baseline&&(p.v.value>baseline.hi||p.v.value<baseline.lo);return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${dev?'var(--red)':'var(--accent)'}"/>`;}).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:150px;display:block">${band}<polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="2"/>${dots}</svg>`;
+}
+
+/* ---------- AUTH ---------- */
+function renderAuth(){
+  const isLogin=ui.authTab==="login";
+  return `<div class="center-screen"><div class="auth-box">
+    <div class="logo">${pulseIcon()}Pulsewise</div>
+    <div class="tabs">
+      <button class="${isLogin?'active':''}" onclick="ui.authTab='login';ui.authErr='';render()">Log In</button>
+      <button class="${!isLogin?'active':''}" onclick="ui.authTab='signup';ui.authErr='';render()">Sign Up</button>
+    </div>
+    <div class="card">
+      ${isLogin?loginForm():signupForm()}
+      ${ui.authErr?`<div class="err">${esc(ui.authErr)}</div>`:""}
+    </div>
+    <div class="foot">This prototype is intended for demonstration of wearable biosensor monitoring concepts and is not a medical diagnostic device.</div>
+  </div></div>`;
+}
+function pulseIcon(){return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2 12h4l2-7 4 14 3-9 2 5h5" stroke="#137A6C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
+function loginForm(){
+  return `<form onsubmit="return doLogin(event)">
+    <div class="field"><label>Email</label><input id="li-email" type="email" required></div>
+    <div class="field"><label>Password</label><input id="li-pass" type="password" required></div>
+    <button class="btn block" type="submit">Log In</button>
+  </form>`;
+}
+function signupForm(){
+  return `<form onsubmit="return doSignup(event)">
+    <div class="field"><label>Name</label><input id="su-name" required></div>
+    <div class="field"><label>Email</label><input id="su-email" type="email" required></div>
+    <div class="field"><label>Password</label><input id="su-pass" type="password" required></div>
+    <div class="field"><label>Confirm Password</label><input id="su-pass2" type="password" required></div>
+    <button class="btn block" type="submit">Create Account</button>
+  </form>`;
+}
+async function doLogin(e){
+  e.preventDefault();
+  const email=document.getElementById("li-email").value.trim().toLowerCase();
+  const pass=document.getElementById("li-pass").value;
+  const u=db.users[email];
+  if(!u){ui.authErr="No account with that email.";render();return false;}
+  const hash=await sha256(pass);
+  if(hash!==u.passHash){ui.authErr="Incorrect password.";render();return false;}
+  db.session=email; saveDB();
+  ui.view=profile().monitoringGoal?"dashboard":"onboarding";
+  render(); return false;
+}
+async function doSignup(e){
+  e.preventDefault();
+  const name=document.getElementById("su-name").value.trim();
+  const email=document.getElementById("su-email").value.trim().toLowerCase();
+  const pass=document.getElementById("su-pass").value;
+  const pass2=document.getElementById("su-pass2").value;
+  if(pass!==pass2){ui.authErr="Passwords do not match.";render();return false;}
+  if(db.users[email]){ui.authErr="An account with that email already exists.";render();return false;}
+  const passHash=await sha256(pass);
+  db.users[email]={name,email,passHash};
+  db.profiles[email]={name,monitoringGoal:null,condition:"",level:1,xp:0,streak:0,longestStreak:0,badges:{},readingDays:[],trendReviewDays:[],learningDone:{},challenges:{},rewardsRedeemed:[],weeklyCount:0};
+  db.sensors[email]={connected:false,battery:Math.floor(70+Math.random()*25),lastSync:null,pattern:"normal"};
+  db.readings[email]=[];
+  db.session=email; saveDB();
+  ui.view="onboarding"; render(); return false;
+}
+function logout(){ db.session=null; saveDB(); ui.view="auth"; ui.authTab="login"; render(); }
+
+/* ---------- ONBOARDING ---------- */
+function renderOnboarding(){
+  const p=profile();
+  const sel=ui.onboardGoal||p.monitoringGoal;
+  const showCond=sel==="disease";
+  return `<div class="center-screen"><div class="auth-box" style="max-width:440px">
+    <div class="logo">${pulseIcon()}Pulsewise</div>
+    <div class="card">
+      <h2>What would you like to monitor?</h2>
+      <p class="muted" style="margin-bottom:14px">This personalizes your monitoring experience. It does not diagnose any condition.</p>
+      ${GOALS.map(g=>`<button class="goal-opt ${sel===g.id?'sel':''}" onclick="ui.onboardGoal='${g.id}';render()">${g.label}</button>`).join("")}
+      ${showCond?`<div class="field" style="margin-top:10px"><label>Which condition are you monitoring?</label>
+        <select id="ob-cond" onchange="ui.onboardCond=this.value;render()">
+          <option value="">Select...</option>
+          ${CONDITIONS.map(c=>`<option ${ (ui.onboardCond||p.condition)===c?'selected':''} value="${c}">${c}</option>`).join("")}
+        </select>
+        ${(ui.onboardCond||p.condition)==="Other"?`<input style="margin-top:8px" id="ob-cond-other" placeholder="Enter condition" oninput="ui.onboardCondOther=this.value">`:""}
+      </div>`:""}
+      <button class="btn block" style="margin-top:8px" ${sel?"":"disabled"} onclick="saveOnboarding()">Continue</button>
+    </div>
+  </div></div>`;
+}
+function saveOnboarding(){
+  const p=profile();
+  p.monitoringGoal=ui.onboardGoal||p.monitoringGoal;
+  if(p.monitoringGoal==="disease"){
+    let cond=ui.onboardCond||p.condition;
+    if(cond==="Other") cond=ui.onboardCondOther||"Other";
+    p.condition=cond;
+  } else { p.condition=""; }
+  saveDB();
+  ui.view=ui.returnToProfile?"profile":"dashboard"; ui.returnToProfile=false;
+  render();
+}
+
+/* ---------- BASELINE / TREND / ATTENTION ---------- */
+function computeBaseline(rs){
+  if(rs.length<3) return null;
+  const recent=rs.slice(-10).map(r=>r.value);
+  const sorted=[...recent].sort((a,b)=>a-b);
+  const mid=Math.floor(sorted.length/2);
+  const median=sorted.length%2?sorted[mid]:(sorted[mid-1]+sorted[mid])/2;
+  const mad=recent.reduce((s,v)=>s+Math.abs(v-median),0)/recent.length;
+  const spread=Math.max(4,Math.round(mad*1.5));
+  return {lo:Math.round(median-spread),hi:Math.round(median+spread),median:Math.round(median),spread,sampleSize:recent.length};
+}
+function computeTrend(rs){
+  if(rs.length<3) return {label:"Not enough data",dir:"flat",detail:"Take at least 3 readings to identify a trend."};
+  const last3=rs.slice(-3).map(r=>r.value);
+  const baseline=computeBaseline(rs);
+  if(Math.abs(last3[2]-last3[1])>=12) return {label:"Sudden change",dir:last3[2]>last3[1]?"up":"down",detail:`Your latest reading changed sharply, from ${last3[1]} to ${last3[2]}.`};
+  if(baseline&&last3.every(v=>v>baseline.hi||v<baseline.lo)) return {label:"Repeated deviation",dir:"flat",detail:"Your last 3 readings have all fallen outside your personal baseline."};
+  if(last3[1]-last3[0]>=3&&last3[2]-last3[1]>=3) return {label:"Increasing",dir:"up",detail:"Your last 3 readings show an upward pattern."};
+  if(last3[0]-last3[1]>=3&&last3[1]-last3[2]>=3) return {label:"Decreasing",dir:"down",detail:"Your last 3 readings show a downward pattern."};
+  return {label:"Stable",dir:"flat",detail:"Your recent readings are relatively consistent."};
+}
+function statusFor(value,baseline){
+  if(!baseline) return {text:"Building baseline",cls:"gray"};
+  const dev=Math.max(value-baseline.hi,baseline.lo-value,0);
+  if(dev<=0) return {text:"Within personal pattern",cls:"green"};
+  if(dev<=baseline.spread) return {text:"Slightly outside pattern",cls:"amber"};
+  return {text:"Attention",cls:"red"};
+}
+function computeAttention(rs){
+  if(rs.length<3) return {alert:false};
+  const baseline=computeBaseline(rs);
+  if(!baseline) return {alert:false};
+  const last=rs[rs.length-1],prev=rs[rs.length-2];
+  const devAmount=last.value>baseline.hi?last.value-baseline.hi:(last.value<baseline.lo?last.value-baseline.lo:0);
+  const changePct=prev?(((last.value-prev.value)/prev.value)*100).toFixed(1):null;
+  let consecutive=0;
+  for(let i=rs.length-1;i>=0;i--){ if(rs[i].value>baseline.hi||rs[i].value<baseline.lo) consecutive++; else break; }
+  if(!(Math.abs(devAmount)>baseline.spread||consecutive>=3)) return {alert:false};
+  return {alert:true,current:last.value,previous:prev?prev.value:null,baseline,devAmount,changePct,consecutive,trend:computeTrend(rs)};
+}
+function buildInsight(a){
+  if(a.trend.dir==="up") return "Your recent readings are trending upward compared with your personal monitoring pattern.";
+  if(a.trend.dir==="down") return "Your recent readings are trending downward compared with your personal monitoring pattern.";
+  if(a.consecutive>=3) return "Your last few readings have repeatedly fallen outside your personal monitoring pattern.";
+  return "Your latest reading is a one-time deviation from your personal monitoring pattern.";
+}
+function isToday(ts){ return new Date(ts).toDateString()===new Date().toDateString(); }
+
+/* ---------- GAMIFICATION (sits on top of monitoring; never touches baseline/trend/attention) ---------- */
+function dateKey(ts){ const d=new Date(ts); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function computeLevel(xp){
+  let idx=0; for(let i=0;i<LEVELS.length;i++){ if(xp>=LEVELS[i].min) idx=i; }
+  const next=LEVELS[idx+1]||null;
+  return {index:idx,name:LEVELS[idx].name,min:LEVELS[idx].min,nextMin:next?next.min:null};
+}
+function computeStreaks(days){
+  if(!days.length) return {current:0,longest:0};
+  const sorted=[...new Set(days)].sort();
+  const diff=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
+  let longest=1,run=1;
+  for(let i=1;i<sorted.length;i++){ run=diff(sorted[i-1],sorted[i])===1?run+1:1; longest=Math.max(longest,run); }
+  const today=dateKey(Date.now()),yest=dateKey(Date.now()-86400000);
+  const last=sorted[sorted.length-1];
+  let current=0;
+  if(last===today||last===yest){
+    current=1;
+    for(let i=sorted.length-1;i>0;i--){ if(diff(sorted[i-1],sorted[i])===1) current++; else break; }
+  }
+  return {current,longest};
+}
+function pushToast(html){
+  const id="t"+Date.now()+Math.random().toString(36).slice(2,6);
+  ui.toasts.push({id,html});
+  setTimeout(()=>{ ui.toasts=ui.toasts.filter(t=>t.id!==id); render(); },3000);
+}
+function renderToasts(){
+  if(!ui.toasts.length) return "";
+  return `<div style="position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:8px;align-items:center">
+    ${ui.toasts.map(t=>`<div class="card" style="padding:9px 16px;margin:0;box-shadow:0 4px 14px rgba(0,0,0,.18);white-space:nowrap">${t.html}</div>`).join("")}
+  </div>`;
+}
+function awardXP(amount,label){
+  const p=profile(); p.xp+=amount; p.level=computeLevel(p.xp).index+1; saveDB();
+  pushToast(`<strong style="color:var(--accent)">+${amount} XP</strong> <span class="muted">${esc(label)}</span>`);
+}
+function unlockBadge(id,label){
+  const p=profile();
+  if(!p.badges[id]){ p.badges[id]=true; saveDB(); pushToast(`🏅 <strong>${esc(label)}</strong> unlocked`); }
+}
+function completeChallenge(id,reward,label){
+  const p=profile();
+  if(!p.challenges[id]){ p.challenges[id]=true; awardXP(reward,`Challenge complete: ${label}`); }
+}
+function maybeAwardTrendReview(){
+  const p=profile(), today=dateKey(Date.now());
+  if(!p.trendReviewDays.includes(today)){
+    p.trendReviewDays.push(today); saveDB();
+    awardXP(5,"Trend reviewed");
+    unlockBadge("trendExplorer","Trend Explorer");
+    if(p.trendReviewDays.length>=3) completeChallenge("trend",50,"Know Your Trend");
+  }
+}
+function completeLearning(id){
+  const p=profile();
+  if(!p.learningDone[id]){ p.learningDone[id]=true; saveDB(); awardXP(10,"Learning card completed"); }
+  render();
+}
+function redeemReward(id){
+  const p=profile(), r=REWARDS.find(x=>x.id===id);
+  if(!r||p.rewardsRedeemed.some(x=>x.id===id)) return;
+  if(p.xp<r.cost){ pushToast(`<span class="muted">Not enough XP yet for ${esc(r.name)}.</span>`); render(); return; }
+  p.xp-=r.cost; p.rewardsRedeemed.push({id:r.id,name:r.name,cost:r.cost,ts:Date.now()}); saveDB();
+  pushToast(`🎁 <strong>${esc(r.name)}</strong> redeemed`);
+  render();
+}
+function unlockDataGuardian(){ unlockBadge("dataGuardian","Data Guardian"); render(); }
+
+/* ---------- SHELL / NAV ---------- */
+function shell(active,inner){
+  const p=profile();
+  const nav=[["dashboard","Dashboard"],["monitor","Monitor"],["progress","Progress"],["profile","Profile"]];
+  return `<div class="app-shell">
+    <div class="sidebar">
+      <div class="logo">${pulseIcon()}Pulsewise</div>
+      ${nav.map(n=>`<button class="nav-item ${active===n[0]?'active':''}" onclick="ui.view='${n[0]}';render()">${n[1]}</button>`).join("")}
+      <div style="flex:1"></div>
+      <button class="nav-item" onclick="logout()">Log Out</button>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <strong>${nav.find(n=>n[0]===active)[1]}</strong>
+        <span class="pill gray">${esc(p.name)}</span>
+      </div>
+      <div class="wrap">${inner}</div>
+    </div>
+    <div class="bottomnav">
+      ${nav.map(n=>`<button class="${active===n[0]?'active':''}" onclick="ui.view='${n[0]}';render()">${n[1]}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+/* ---------- DASHBOARD ---------- */
+function renderDashboard(){
+  const p=profile(), s=sensor(), rs=readings();
+  const last=rs[rs.length-1];
+  const baseline=computeBaseline(rs);
+  const trend=computeTrend(rs);
+  const stat=last?statusFor(last.value,baseline):null;
+  const prev=rs[rs.length-2];
+  const change=(last&&prev)?(((last.value-prev.value)/prev.value)*100).toFixed(1):null;
+  const attn=computeAttention(rs);
+  const todayDone=p.readingDays.includes(dateKey(Date.now()));
+  const streaks=computeStreaks(p.readingDays);
+  const lvl=computeLevel(p.xp);
+  const badgeCount=Object.values(p.badges).filter(Boolean).length;
+
+  let heroBody;
+  if(!s.connected){
+    heroBody=`<div class="unit">Current Reading</div><div style="margin:10px 0;font-size:17px">Connect your biosensor to start monitoring.</div>
+      <button class="btn" style="background:#fff;color:var(--accent-ink)" onclick="ui.view='monitor';render()">Connect Biosensor</button>`;
+  } else if(!last){
+    heroBody=`<div class="unit">Current Reading</div><div style="margin:10px 0;font-size:17px">No readings yet.</div>
+      <button class="btn" style="background:#fff;color:var(--accent-ink)" onclick="ui.view='monitor';render()">Take a Reading</button>`;
+  } else {
+    heroBody=`<div class="unit">Current Reading</div>
+      <div class="big">${last.value}<span style="font-size:20px;font-weight:500;"> ${BIOMARKER.unit}</span></div>
+      <div class="pill" style="background:rgba(255,255,255,.2);color:#fff">${stat.text}</div>
+      <div class="muted" style="color:rgba(255,255,255,.8);margin-top:8px;font-size:13px">
+        ${prev?`Previous ${prev.value} ${BIOMARKER.unit} · ${change>0?'+':''}${change}%`:"First reading"} · ${timeAgo(last.timestamp)}
+      </div>`;
+  }
+
+  return shell("dashboard",`
+    <h2>Welcome back, ${esc(p.name.split(" ")[0])}</h2>
+    <p class="muted" style="margin-bottom:14px">Biosensor: ${s.connected?`<span class="pill green">Connected ✓</span> <span class="muted">(Simulated)</span>`:`<span class="pill gray">Not connected</span>`}</p>
+
+    <div class="hero-reading">${pulseSVG(200,60)}${heroBody}</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="muted">PERSONAL BASELINE</div>
+        ${baseline?`<h3 style="margin-top:6px">${baseline.lo}–${baseline.hi} ${BIOMARKER.unit}</h3><p class="muted">Calculated from your recent monitoring history — not a clinical range.</p>`
+          :`<h3 style="margin-top:6px">Building your personal baseline...</h3><p class="muted">Take at least 3 readings to establish your personal monitoring pattern.</p>`}
+      </div>
+      <div class="card">
+        <div class="muted">TREND</div>
+        <h3 style="margin-top:6px">${trend.dir==='up'?'↗ ':trend.dir==='down'?'↘ ':'→ '}${trend.label}</h3>
+        <p class="muted">${trend.detail}</p>
+      </div>
+    </div>
+
+    ${attn.alert?`<div class="card" style="border-color:var(--red);background:var(--red-bg)">
+      <div class="pill red" style="margin-bottom:8px">🔴 ATTENTION — Pattern deviation detected</div>
+      <p style="margin:0 0 8px">Your latest reading is significantly different from your recent personal pattern.</p>
+      <div class="row" style="gap:22px;margin-bottom:8px">
+        <div><div class="muted" style="font-size:12px">CURRENT</div><strong>${attn.current}</strong></div>
+        <div><div class="muted" style="font-size:12px">BASELINE</div><strong>${attn.baseline.lo}–${attn.baseline.hi}</strong></div>
+        <div><div class="muted" style="font-size:12px">CHANGE</div><strong>${attn.changePct!=null?(attn.changePct>0?'+':'')+attn.changePct+'%':'—'}</strong></div>
+      </div>
+      <button class="btn ghost sm" onclick="ui.showWhy=!ui.showWhy;render()">${ui.showWhy?'Hide explanation':'Why did I receive this?'}</button>
+      ${ui.showWhy?`<div class="card" style="background:var(--surface);margin:10px 0 0">
+        <div class="muted" style="margin-bottom:8px">WHY THIS ALERT?</div>
+        <p style="margin:4px 0">✓ Current reading: ${attn.current} ${BIOMARKER.unit}</p>
+        <p style="margin:4px 0">✓ Personal baseline: ${attn.baseline.lo}–${attn.baseline.hi} ${BIOMARKER.unit}</p>
+        <p style="margin:4px 0">✓ Difference from baseline edge: ${attn.devAmount>0?'+':''}${attn.devAmount}</p>
+        <p style="margin:4px 0">✓ Previous reading: ${attn.previous??'—'}</p>
+        <p style="margin:4px 0">✓ Recent trend: ${attn.trend.label}</p>
+        <p style="margin:4px 0">✓ Consecutive deviations: ${attn.consecutive}</p>
+        <div class="muted" style="margin:10px 0 4px">INSIGHT</div>
+        <p style="margin:0">${buildInsight(attn)}</p>
+      </div>`:""}
+      <p class="muted" style="margin:10px 0 0">This is a monitoring alert, not a diagnosis. Review your recent readings.</p>
+    </div>`:(baseline?`<p class="muted" style="margin:-4px 0 14px">✓ No attention patterns detected</p>`:"")}
+
+    <div class="card">
+      <div class="muted" style="margin-bottom:10px">TODAY'S MONITORING GOAL</div>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <span>${GOALS.find(g=>g.id===p.monitoringGoal)?.label||"General Health Monitoring"}${p.condition?` · ${esc(p.condition)}`:""}</span>
+        <span class="pill ${todayDone?'green':'gray'}">${todayDone?"✓ Today's goal completed":"0 / 1 readings"}</span>
+      </div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="ui.view='monitor';render()">Monitor Now</button>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="muted">YOUR PROGRESS</div>
+        <button class="btn ghost sm" onclick="ui.view='progress';render()">View Progress</button>
+      </div>
+      <div class="row" style="gap:20px;align-items:center">
+        <div>🔥 <strong>${streaks.current}</strong> <span class="muted">day streak</span></div>
+        <div>⭐ <strong>Level ${lvl.index+1}</strong> <span class="muted">${p.xp}${lvl.nextMin?'/'+lvl.nextMin:''} XP</span></div>
+        <div>🏅 <strong>${badgeCount}</strong> <span class="muted">badges</span></div>
+      </div>
+    </div>
+    <div class="foot">This prototype is a demonstration of wearable biosensor monitoring concepts and is not a medical diagnostic device.</div>
+  `);
+}
+
+/* ---------- MONITOR ---------- */
+function renderMonitor(){
+  maybeAwardTrendReview();
+  const s=sensor(), rs=readings();
+  const patterns=[["normal","Normal Pattern"],["increasing","Increasing Trend"],["decreasing","Decreasing Trend"],["attention","Attention Pattern"]];
+  const ranges=[["today","Today"],["7d","7 Days"],["30d","30 Days"]];
+  const rangeMs={today:86400000,"7d":7*86400000,"30d":30*86400000}[ui.historyRange];
+  const filtered=rs.filter(r=>Date.now()-r.timestamp<=rangeMs);
+  const baseline=computeBaseline(rs);
+  const chart=buildChart(filtered,baseline);
+
+  return shell("monitor",`
+    <div class="card">
+      <div class="sensor-row">
+        <div><h3>Biosensor</h3><span class="pill ${s.connected?'green':'gray'}">${s.connected?'Connected ✓':'Not connected'}</span></div>
+        <button class="btn ${s.connected?'ghost':''}" onclick="toggleSensor()">${s.connected?'Disconnect':'Connect Biosensor'}</button>
+      </div>
+      <p class="muted" style="margin:8px 0 0">Simulated sensor — no real hardware is connected.</p>
+      ${s.connected?`
+      <div class="grid2" style="margin-top:14px">
+        <div><div class="muted">Battery</div><strong>${s.battery}%</strong></div>
+        <div><div class="muted">Signal Quality</div><strong>${signalLabel(rs)}</strong></div>
+        <div><div class="muted">Last Sync</div><strong>${s.lastSync?timeAgo(s.lastSync):"—"}</strong></div>
+        <div><div class="muted">Sensor Status</div><strong>Active</strong></div>
+      </div>`:``}
+    </div>
+
+    <div class="card">
+      <div class="muted" style="margin-bottom:10px">SIMULATION CONTROLS</div>
+      <div class="row">
+        ${patterns.map(p=>`<button class="btn sm ${s.pattern===p[0]?'':'ghost'}" onclick="setPattern('${p[0]}')">${p[1]}</button>`).join("")}
+      </div>
+      <button class="btn block" style="margin-top:14px" ${s.connected?"":"disabled"} onclick="takeReading()">Take New Reading</button>
+      ${!s.connected?`<p class="muted" style="margin-top:8px">Connect the biosensor above to begin taking readings.</p>`:""}
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="muted">HISTORY</div>
+        <div class="tabs" style="margin:0;width:auto">${ranges.map(r=>`<button class="${ui.historyRange===r[0]?'active':''}" onclick="ui.historyRange='${r[0]}';render()">${r[1]}</button>`).join("")}</div>
+      </div>
+      ${chart||`<p class="muted">No historical data yet.</p>`}
+      ${baseline?`<p class="muted" style="margin-top:8px">Shaded band = personal baseline (${baseline.lo}–${baseline.hi}). Red dots = attention readings.</p>`:""}
+    </div>
+
+    <div class="card">
+      <div class="muted" style="margin-bottom:6px">READINGS ${ui.historyRange==='today'?'(Today)':ui.historyRange==='7d'?'(7 Days)':'(30 Days)'}</div>
+      ${filtered.length?`<ul class="readinglist">${filtered.slice().reverse().map(r=>{
+        const idx=rs.findIndex(x=>x.id===r.id);
+        const upTo=rs.slice(0,idx+1);
+        const bl=computeBaseline(upTo);
+        const st=statusFor(r.value,bl);
+        const open=ui.expandedId===r.id;
+        return `<li style="display:block;border-bottom:1px solid var(--line);padding:9px 0">
+          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="ui.expandedId=(ui.expandedId==='${r.id}'?null:'${r.id}');render()">
+            <span>${fmtTime(r.timestamp)}</span><span>${r.value} ${r.unit}</span><span class="pill ${st.cls}">${st.text}</span>
+          </div>
+          ${open?`<div class="muted" style="margin-top:8px;font-size:13px;line-height:1.7">
+            Signal quality: ${r.signalQuality}<br>
+            Deviation from baseline: ${bl?(r.value>bl.hi?'+'+(r.value-bl.hi):(r.value<bl.lo?(r.value-bl.lo):'0 (within range)')):'baseline not yet available'}<br>
+            Contributed to an attention alert: ${computeAttention(upTo).alert?'Yes':'No'}
+          </div>`:""}
+        </li>`;
+      }).join("")}</ul>`:`<p class="muted">No readings yet.</p>`}
+    </div>
+  `);
+}
+function signalLabel(rs){
+  const last=rs[rs.length-1];
+  return last?last.signalQuality:"—";
+}
+function toggleSensor(){
+  const s=sensor();
+  s.connected=!s.connected;
+  if(s.connected){ s.battery=Math.floor(70+Math.random()*25); s.lastSync=Date.now(); }
+  saveDB(); render();
+}
+function setPattern(p){ sensor().pattern=p; saveDB(); render(); }
+function takeReading(){
+  const s=sensor(); const rs=readings();
+  const last=rs[rs.length-1];
+  let value;
+  const base=BIOMARKER.center;
+  switch(s.pattern){
+    case "increasing": value=(last?last.value:base)+2+Math.random()*2; break;
+    case "decreasing": value=(last?last.value:base)-2-Math.random()*2; break;
+    case "attention": value=base+(Math.random()<0.5?-1:1)*(16+Math.random()*8); break;
+    default: value=base+(Math.random()*8-4);
+  }
+  value=Math.round(value);
+  const qualities=["Excellent","Excellent","Good","Good","Fair"];
+  const reading={
+    id:"r_"+Date.now(),
+    timestamp:Date.now(),
+    value, unit:BIOMARKER.unit,
+    sensorId:"sim-sensor-01",
+    signalQuality:qualities[Math.floor(Math.random()*qualities.length)],
+    status:"recorded",
+    context:s.pattern
+  };
+  rs.push(reading);
+  db.readings[me()]=rs;
+  s.lastSync=Date.now();
+  s.battery=Math.max(5,s.battery-1);
+  const p=profile(), today=dateKey(Date.now());
+  if(!p.readingDays.includes(today)){
+    const wasFirstEver=p.readingDays.length===0;
+    p.readingDays.push(today); saveDB();
+    awardXP(10,"Reading recorded");
+    awardXP(15,"Today's monitoring goal completed");
+    if(wasFirstEver) unlockBadge("firstReading","First Reading");
+    const streaks=computeStreaks(p.readingDays);
+    if(streaks.current>=3) unlockBadge("consistentMonitor","Consistent Monitor");
+    if(streaks.current>=7) unlockBadge("sevenDay","7-Day Streak");
+    if(p.readingDays.length>=7) completeChallenge("sevenDay",100,"7-Day Monitoring");
+    if(p.readingDays.length>=5) completeChallenge("consistent",75,"Stay Consistent");
+    const milestones=Math.floor(p.readingDays.length/7);
+    if(milestones>p.weeklyCount){ p.weeklyCount=milestones; saveDB(); awardXP(25,"Weekly monitoring goal completed"); unlockBadge("weeklyTracker","Weekly Tracker"); }
+  } else {
+    awardXP(10,"Reading recorded");
+  }
+  saveDB();
+  render();
+}
+
+/* ---------- PROGRESS ---------- */
+function renderProgress(){
+  const p=profile(), lvl=computeLevel(p.xp), streaks=computeStreaks(p.readingDays);
+  const span=lvl.nextMin?lvl.nextMin-lvl.min:1, into=p.xp-lvl.min;
+  const pct=lvl.nextMin?Math.min(100,Math.round(into/span*100)):100;
+  return shell("progress",`
+    <div class="card">
+      <div class="muted">LEVEL</div>
+      <h3 style="margin-top:6px">Level ${lvl.index+1} — ${lvl.name}</h3>
+      <div class="pbar"><div style="width:${pct}%"></div></div>
+      <p class="muted">${lvl.nextMin?`${p.xp} / ${lvl.nextMin} XP · ${lvl.nextMin-p.xp} XP to next level`:`${p.xp} XP · Top level reached`}</p>
+    </div>
+    <div class="card">
+      <div class="muted">STREAK</div>
+      <div class="row" style="gap:24px;margin-top:6px">
+        <div><div class="num" style="font-size:22px;font-weight:700">🔥 ${streaks.current}</div><div class="muted">current</div></div>
+        <div><div class="num" style="font-size:22px;font-weight:700">${streaks.longest}</div><div class="muted">longest</div></div>
+      </div>
+      ${streaks.current===0&&p.readingDays.length>0?`<p class="muted" style="margin-top:8px">Your streak ended. Start a new one today.</p>`:""}
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:10px">BADGES</div>
+      <div class="grid2">${BADGES.map(b=>{
+        const on=!!p.badges[b.id];
+        return `<div class="card ${on?'':'locked'}" style="margin-bottom:0"><div>${on?'🏅':'🔒'} <strong>${b.label}</strong></div><p class="muted" style="margin:4px 0 0">${on?'Unlocked':b.desc}</p></div>`;
+      }).join("")}</div>
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:10px">CHALLENGES</div>
+      ${CHALLENGES.map(c=>{
+        const val=Math.min(c.target,c.metric(p)); const pc=Math.round(val/c.target*100); const done=!!p.challenges[c.id];
+        return `<div style="margin-bottom:14px">
+          <div class="row" style="justify-content:space-between"><strong>${c.label}</strong><span class="muted">${done?`✓ Completed — +${c.reward} XP`:`${val} / ${c.target}`}</span></div>
+          <p class="muted" style="margin:2px 0 4px">${c.desc}</p>
+          <div class="pbar"><div style="width:${done?100:pc}%"></div></div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:10px">REWARDS</div>
+      ${REWARDS.map(r=>{
+        const redeemed=p.rewardsRedeemed.find(x=>x.id===r.id);
+        return `<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div><strong>${r.name}</strong><p class="muted" style="margin:2px 0">${r.desc} · ${r.cost} XP</p></div>
+          ${redeemed?`<span class="pill green">Redeemed</span>`:`<button class="btn sm ${p.xp<r.cost?'ghost':''}" onclick="redeemReward('${r.id}')">Redeem</button>`}
+        </div>`;
+      }).join("")}
+      ${p.rewardsRedeemed.length?`<p class="muted">Redemption history: ${p.rewardsRedeemed.map(r=>esc(r.name)).join(", ")}</p>`:""}
+    </div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:10px">LEARN</div>
+      ${LEARN.map(l=>{
+        const done=!!p.learningDone[l.id];
+        return `<div style="margin-bottom:12px">
+          <div class="row" style="justify-content:space-between;align-items:center"><strong>${l.title}</strong>${done?`<span class="pill green">✓ Completed</span>`:`<button class="btn ghost sm" onclick="completeLearning('${l.id}')">Mark Complete (+10 XP)</button>`}</div>
+          <p class="muted" style="margin:4px 0 0">${l.body}</p>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="foot">This prototype is a demonstration of wearable biosensor monitoring concepts and is not a medical diagnostic device.</div>
+  `);
+}
+
+/* ---------- PROFILE ---------- */
+function renderProfile(){
+  const p=profile(), streaks=computeStreaks(p.readingDays);
+  return shell("profile",`
+    <div class="card">
+      <div class="field"><label>Name</label>
+        ${ui.editingName?`<input id="pf-name" value="${esc(p.name)}">`:`<div class="row" style="justify-content:space-between;align-items:center"><strong>${esc(p.name)}</strong><button class="btn ghost sm" onclick="ui.editingName=true;render()">Edit</button></div>`}
+      </div>
+      ${ui.editingName?`<button class="btn sm" onclick="saveName()">Save</button>`:""}
+      <div class="field" style="margin-top:14px"><label>Email</label><div>${esc(p.name && me())}</div></div>
+      <div class="field"><label>Monitoring Goal</label>
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <span>${GOALS.find(g=>g.id===p.monitoringGoal)?.label||"—"}${p.condition?` · ${esc(p.condition)}`:""}</span>
+          <button class="btn ghost sm" onclick="ui.returnToProfile=true;ui.onboardGoal=p.monitoringGoal;ui.onboardCond=p.condition;ui.view='onboarding';render()">Change</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card stat"><div class="muted">LEVEL</div><div class="num">${p.level}</div></div>
+      <div class="card stat"><div class="muted">XP</div><div class="num">${p.xp}</div></div>
+      <div class="card stat" style="grid-column:span 2"><div class="muted">🔥 STREAK</div><div class="num">${streaks.current} days (longest ${streaks.longest})</div></div>
+    </div>
+    <div class="card">
+      <button class="btn block ghost" onclick="logout()">Log Out</button>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div><strong>Privacy & Data</strong><p class="muted" style="margin:2px 0 0">${p.badges.dataGuardian?"You've reviewed your privacy settings.":"A full Privacy Center is coming in a later step."}</p></div>
+        ${p.badges.dataGuardian?`<span class="pill green">🏅 Data Guardian</span>`:`<button class="btn ghost sm" onclick="unlockDataGuardian()">View Privacy Settings</button>`}
+      </div>
+    </div>
+    <div class="foot">This prototype is intended for demonstration of wearable biosensor monitoring concepts and is not a medical diagnostic device.</div>
+  `);
+}
+function saveName(){
+  const v=document.getElementById("pf-name").value.trim();
+  if(v){ profile().name=v; db.users[me()].name=v; saveDB(); }
+  ui.editingName=false; render();
+}
+
+/* ---------- ROUTER ---------- */
+function render(){
+  const app=document.getElementById("app");
+  let html;
+  if(!db.session) html=renderAuth();
+  else if(ui.view==="onboarding") html=renderOnboarding();
+  else if(ui.view==="monitor") html=renderMonitor();
+  else if(ui.view==="progress") html=renderProgress();
+  else if(ui.view==="profile") html=renderProfile();
+  else html=renderDashboard();
+  app.innerHTML=html+renderToasts();
+}
+if(db.session && !db.profiles[db.session]){ db.session=null; }
+if(db.session){ ui.view = profile().monitoringGoal ? "dashboard" : "onboarding"; }
+render();
+</script>
+</body>
+</html>
